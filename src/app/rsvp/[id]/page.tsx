@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Event } from "@/lib/models";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 // Utility function to format date
 const formatDate = (date: Date) => {
@@ -238,14 +239,21 @@ export default function RsvpPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
-        <div className="h-16 px-4 md:px-6 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <CheckCircle className="h-5 w-5 text-primary" />
-            <span className="font-bold text-lg font-antonio">
-              <b>S<i>a</i>ve the D<i>a</i>te</b>
-            </span>
-          </div>
+      <header className="container mx-auto py-6 flex justify-between items-center">
+        <Link href="/" className="flex items-center space-x-2">
+          <CheckCircle className="h-6 w-6 text-primary" />
+          <span className="font-bold text-xl font-antonio">
+            <b>S<i>a</i>ve the D<i>a</i>te</b>
+          </span>
+        </Link>
+        
+        <div className="flex items-center space-x-4">
+          <Link 
+            href="/pricing" 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
+            Pricing
+          </Link>
         </div>
       </header>
 

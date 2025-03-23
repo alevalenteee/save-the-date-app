@@ -7,18 +7,22 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="flex items-center justify-between py-6 px-4 md:px-6 w-full">
-        <div className="flex items-center space-x-2">
+      <header className="container mx-auto py-6 flex justify-between items-center">
+        <Link href="/" className="flex items-center space-x-2">
           <CheckCircle className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold font-antonio">
+          <span className="font-bold text-xl font-antonio">
             <b>S<i>a</i>ve the D<i>a</i>te</b>
-          </h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" asChild className="w-[110px]">
-            <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild className="w-[120px]">
+          </span>
+        </Link>
+
+        <div className="flex items-center space-x-4">
+          <Link 
+            href="/pricing" 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
+            Pricing
+          </Link>
+          <Button asChild>
             <Link href="/create-event">Create Event</Link>
           </Button>
         </div>

@@ -33,6 +33,15 @@ export default function EventCreatedPage() {
             <b>S<i>a</i>ve the D<i>a</i>te</b>
           </span>
         </Link>
+        
+        <div className="flex items-center space-x-4">
+          <Link 
+            href="/pricing" 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
+            Pricing
+          </Link>
+        </div>
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
