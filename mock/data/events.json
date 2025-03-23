@@ -1,0 +1,50 @@
+[
+  {
+    "id": "evt123",
+    "name": "Wedding Celebration",
+    "description": "Join us for our special day!",
+    "date": "2023-09-15T16:00:00.000Z",
+    "endDate": "2023-09-15T22:00:00.000Z",
+    "location": "Grand Plaza Hotel, New York",
+    "imageUrl": "https://placehold.co/600x400?text=Wedding",
+    "dressCode": "Formal",
+    "instructions": "Parking available at the venue",
+    "hostName": "John & Jane Smith",
+    "hostEmail": "test@example.com",
+    "adminToken": "abc123token",
+    "createdAt": "2023-06-10T10:30:00.000Z",
+    "updatedAt": "2023-06-10T10:30:00.000Z"
+  },
+  {
+    "id": "evt456",
+    "name": "Birthday Party",
+    "description": "Help me celebrate turning 30!",
+    "date": "2023-08-20T18:00:00.000Z",
+    "endDate": "2023-08-20T23:00:00.000Z",
+    "location": "Sunset Lounge, Los Angeles",
+    "imageUrl": "https://placehold.co/600x400?text=Birthday",
+    "dressCode": "Casual",
+    "instructions": "Bring your favorite drinks!",
+    "hostName": "Michael Johnson",
+    "hostEmail": "test2@example.com",
+    "adminToken": "def456token",
+    "createdAt": "2023-07-05T14:20:00.000Z",
+    "updatedAt": "2023-07-05T14:20:00.000Z"
+  },
+  {
+    "id": "evt789",
+    "name": "Company Retreat",
+    "description": "Annual team building event",
+    "date": "2023-10-10T09:00:00.000Z",
+    "endDate": "2023-10-12T17:00:00.000Z",
+    "location": "Mountain View Resort, Colorado",
+    "imageUrl": "https://placehold.co/600x400?text=Retreat",
+    "dressCode": "Business Casual",
+    "instructions": "Transportation provided from office",
+    "hostName": "Tech Innovations Inc.",
+    "hostEmail": "test3@example.com",
+    "adminToken": "ghi789token",
+    "createdAt": "2023-08-01T09:15:00.000Z",
+    "updatedAt": "2023-08-01T09:15:00.000Z"
+  }
+] 

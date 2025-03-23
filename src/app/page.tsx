@@ -1,103 +1,159 @@
-import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowRight, Calendar, CheckCircle, Send, Sparkles, Users } from "lucide-react";
+import React from "react";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen">
+      {/* Header */}
+      <header className="flex items-center justify-between py-6 px-4 md:px-6 w-full">
+        <div className="flex items-center space-x-2">
+          <Sparkles className="h-6 w-6 text-primary" />
+          <h1 className="text-xl font-bold">SaveTheDate</h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" asChild className="w-[110px]">
+            <Link href="/login">Login</Link>
+          </Button>
+          <Button asChild className="w-[120px]">
+            <Link href="/create-event">Create Event</Link>
+          </Button>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="flex flex-col items-center justify-center text-center px-4 sm:px-6 py-10 md:py-24">
+        <div className="max-w-3xl mx-auto space-y-4 md:space-y-6">
+          <h1 className="text-3xl md:text-6xl font-bold tracking-tight">
+            Create Beautiful 
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 ml-2">
+              Digital Invitations
+            </span>
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            A modern RSVP platform for events. Create stunning invitations, QR codes, and track responses - all in one place.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mt-6 md:mt-8">
+            <Button asChild size="lg" className="rounded-full px-4 md:px-6 text-sm md:text-base w-[220px] mx-auto sm:mx-0">
+              <Link href="/create-event">
+                Create Your Event
+                <ArrowRight className="ml-2 h-3 w-3 md:h-4 md:w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="rounded-full px-4 md:px-6 text-sm md:text-base w-[220px] mx-auto sm:mx-0">
+              <Link href="#features">Learn More</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="bg-muted/50 py-12 md:py-20">
+        <div className="px-4 sm:px-6 max-w-5xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Why Choose SaveTheDate?</h2>
+          <div className="grid md:grid-cols-3 gap-6 md:gap-10">
+            <FeatureCard 
+              icon={<Calendar className="h-10 w-10 text-primary" />}
+              title="Effortless Event Creation"
+              description="Set up your event in minutes. Customize every detail and get a unique event link instantly."
+            />
+            <FeatureCard 
+              icon={<Send className="h-10 w-10 text-primary" />}
+              title="Digital Invitations"
+              description="Generate beautiful QR codes and digital save-the-date cards to share via email, text, or social media."
+            />
+            <FeatureCard 
+              icon={<CheckCircle className="h-10 w-10 text-primary" />}
+              title="One-Click RSVP"
+              description="Guests can RSVP instantly without signing up. Track responses in real-time on your dashboard."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-12 md:py-20">
+        <div className="px-4 sm:px-6 max-w-5xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">How It Works</h2>
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+            <Step number={1} title="Create Your Event" description="Enter your event details including name, date, location, and customize the look and feel." />
+            <Step number={2} title="Invite Your Guests" description="Add guests manually or upload a list. Each guest receives a personalized invitation link." />
+            <Step number={3} title="Track RSVPs" description="Monitor responses in real-time and send reminders to guests who haven't responded yet." />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-primary text-primary-foreground py-10 md:py-16">
+        <div className="px-4 sm:px-6 max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Ready to Create Your Event?</h2>
+          <p className="text-base md:text-xl mb-6 md:mb-8 max-w-2xl mx-auto opacity-90">
+            Join thousands of hosts who have simplified their event planning with SaveTheDate.
+          </p>
+          <Button 
+            asChild 
+            size="lg" 
+            variant="secondary" 
+            className="rounded-full px-4 md:px-6 text-sm md:text-base w-[220px] mx-auto"
+          >
+            <Link href="/create-event">Get Started for Free</Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-background border-t py-8 md:py-10">
+        <div className="px-4 sm:px-6 max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-5 md:gap-6">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <span className="font-medium text-sm md:text-base">SaveTheDate</span>
+            </div>
+            <div className="flex gap-6 md:gap-8">
+              <Link href="#" className="text-xs md:text-sm text-muted-foreground hover:text-foreground">
+                Terms
+              </Link>
+              <Link href="#" className="text-xs md:text-sm text-muted-foreground hover:text-foreground">
+                Privacy
+              </Link>
+              <Link href="#" className="text-xs md:text-sm text-muted-foreground hover:text-foreground">
+                Contact
+              </Link>
+              <Link href="/mock-testing" className="text-xs md:text-sm text-muted-foreground hover:text-foreground">
+                Test Mode
+              </Link>
+            </div>
+            <p className="text-xs md:text-sm text-muted-foreground">
+              © {new Date().getFullYear()} SaveTheDate. All rights reserved.
+            </p>
+          </div>
+        </div>
       </footer>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <div className="bg-background p-4 md:p-6 rounded-xl shadow-sm border border-border flex flex-col items-center text-center">
+      <div className="mb-3 md:mb-4 h-8 w-8 md:h-10 md:w-10 text-primary">
+        {icon}
+      </div>
+      <h3 className="text-lg md:text-xl font-medium mb-1 md:mb-2">{title}</h3>
+      <p className="text-sm md:text-base text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+function Step({ number, title, description }: { number: number; title: string; description: string }) {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-lg md:text-xl font-bold mb-3 md:mb-4">
+        {number}
+      </div>
+      <h3 className="text-lg md:text-xl font-medium mb-1 md:mb-2">{title}</h3>
+      <p className="text-sm md:text-base text-muted-foreground">{description}</p>
     </div>
   );
 }
