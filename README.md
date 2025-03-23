@@ -57,7 +57,16 @@ npm install
 yarn install
 ```
 
-3. Set up your environment variables by creating a `.env` file in the root of the project:
+3. Set up your environment variables:
+
+   - Copy `.env.example` to `.env.local`
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   - Fill in your Firebase configuration values in `.env.local`
+   - **IMPORTANT**: Never commit `.env.local` or any files containing API keys or secrets to your repository!
 
 ```
 NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"
@@ -101,6 +110,15 @@ The application will be available at http://localhost:3000
 - Secure invitation links for guests
 - Firebase security rules for data protection
 - No passwords stored for guest access
+- Environment variables for sensitive configuration
+- Strict .gitignore policies to prevent accidental exposure of API keys
+
+### API Key Security
+
+- All API keys and sensitive information are stored in environment variables
+- Never commit .env files containing real API keys to your repository
+- Use .env.example for documentation purposes only
+- Consider using Firebase App Check for additional security
 
 ## 📃 License
 
