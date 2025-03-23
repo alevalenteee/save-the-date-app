@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, Calendar, MapPin, User, AlertCircle } from "lucide-react";
+import { Calendar, MapPin, User, AlertCircle, CheckCircle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -148,7 +148,7 @@ const RsvpConfirmation = ({
 }) => {
   return (
     <div className="space-y-4 text-center">
-      <Sparkles className="h-12 w-12 mx-auto text-primary" />
+      <CheckCircle className="h-12 w-12 mx-auto text-primary" />
       <h2 className="text-xl font-semibold">Thank You!</h2>
       <p className="text-muted-foreground">
         {formData.response === 'yes' 
@@ -241,8 +241,10 @@ export default function RsvpPage() {
       <header className="border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
         <div className="h-16 px-4 md:px-6 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="font-bold text-lg">SaveTheDate</span>
+            <CheckCircle className="h-5 w-5 text-primary" />
+            <span className="font-bold text-lg font-antonio">
+              <b>S<i>a</i>ve the D<i>a</i>te</b>
+            </span>
           </div>
         </div>
       </header>

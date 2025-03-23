@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Calendar, CheckCircle, Send, Sparkles, Users } from "lucide-react";
+import { ArrowRight, Calendar, CheckCircle, Send } from "lucide-react";
 import React from "react";
 
 export default function Home() {
@@ -9,8 +9,10 @@ export default function Home() {
       {/* Header */}
       <header className="flex items-center justify-between py-6 px-4 md:px-6 w-full">
         <div className="flex items-center space-x-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold">SaveTheDate</h1>
+          <CheckCircle className="h-6 w-6 text-primary" />
+          <h1 className="text-xl font-bold font-antonio">
+            <b>S<i>a</i>ve the D<i>a</i>te</b>
+          </h1>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="ghost" asChild className="w-[110px]">
@@ -51,7 +53,7 @@ export default function Home() {
       {/* Features Section */}
       <section id="features" className="bg-muted/50 py-12 md:py-20">
         <div className="px-4 sm:px-6 max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Why Choose SaveTheDate?</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Why choose us?</h2>
           <div className="grid md:grid-cols-3 gap-6 md:gap-10">
             <FeatureCard 
               icon={<Calendar className="h-10 w-10 text-primary" />}
@@ -89,7 +91,7 @@ export default function Home() {
         <div className="px-4 sm:px-6 max-w-4xl mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Ready to Create Your Event?</h2>
           <p className="text-base md:text-xl mb-6 md:mb-8 max-w-2xl mx-auto opacity-90">
-            Join thousands of hosts who have simplified their event planning with SaveTheDate.
+            Join thousands of hosts who have simplified their event planning with <span className="font-antonio"><b>S<i>a</i>ve the D<i>a</i>te</b></span>.
           </p>
           <Button 
             asChild 
@@ -107,8 +109,10 @@ export default function Home() {
         <div className="px-4 sm:px-6 max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-5 md:gap-6">
             <div className="flex items-center space-x-2">
-              <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-              <span className="font-medium text-sm md:text-base">SaveTheDate</span>
+              <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <span className="font-medium text-sm md:text-base font-antonio">
+                <b>S<i>a</i>ve the D<i>a</i>te</b>
+              </span>
             </div>
             <div className="flex gap-6 md:gap-8">
               <Link href="#" className="text-xs md:text-sm text-muted-foreground hover:text-foreground">

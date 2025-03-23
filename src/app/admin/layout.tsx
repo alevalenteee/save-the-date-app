@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { BookOpen, Home, LogOut, Menu, Settings, Sparkles, Users, X } from "lucide-react";
+import { BookOpen, Home, LogOut, Menu, Settings, Users, X, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -28,8 +28,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Menu className="h-5 w-5" />
             </Button>
             <Link href="/" className="flex items-center space-x-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <span className="font-bold text-lg">SaveTheDate</span>
+              <CheckCircle className="h-5 w-5 text-primary" />
+              <span className="font-bold text-lg font-antonio">
+                <b>S<i>a</i>ve the D<i>a</i>te</b>
+              </span>
             </Link>
           </div>
           
@@ -76,7 +78,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
+              <CheckCircle className="h-5 w-5 text-primary" />
               <span className="font-medium">Admin</span>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>

@@ -1,4 +1,4 @@
-# SaveTheDate - Modern RSVP Web Application
+# **S*a*ve the D*a*te** - Modern RSVP Web Application
 
 A modern, sleek, and frictionless RSVP application for events such as weddings, birthdays, and celebrations. Built with Next.js, React, Tailwind CSS, and other modern web technologies.
 

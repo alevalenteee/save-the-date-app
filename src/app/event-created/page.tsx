@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Copy, Sparkles } from "lucide-react";
+import { Check, Copy, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -28,8 +28,10 @@ export default function EventCreatedPage() {
       {/* Navigation */}
       <header className="container mx-auto py-6 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl">SaveTheDate</span>
+          <CheckCircle className="h-6 w-6 text-primary" />
+          <span className="font-bold text-xl font-antonio">
+            <b>S<i>a</i>ve the D<i>a</i>te</b>
+          </span>
         </Link>
       </header>
 
