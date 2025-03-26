@@ -2,12 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Calendar, CheckCircle, Menu, Send, X } from "lucide-react";
+import { ArrowRight, Calendar, CheckCircle, Menu, Send, X, User } from "lucide-react";
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data: session, status } = useSession();
 
   return (
     <div className="min-h-screen">
@@ -29,9 +31,28 @@ export default function Home() {
             >
               Pricing
             </Link>
-            <Button asChild>
-              <Link href="/create-event">Create Event</Link>
-            </Button>
+            {status === "authenticated" ? (
+              <>
+                <Button asChild variant="outline">
+                  <Link href="/dashboard">
+                    <User className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/create-event">Create Event</Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild variant="outline">
+                  <Link href="/auth/signin">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/create-event">Create Event</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -91,14 +112,35 @@ export default function Home() {
             >
               Pricing
             </Link>
-            <Button asChild className="w-full">
-              <Link 
-                href="/create-event"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign In
-              </Link>
-            </Button>
+            
+            {status === "authenticated" ? (
+              <>
+                <Link 
+                  href="/dashboard" 
+                  className="block text-sm font-medium hover:text-primary transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <Button asChild className="w-full">
+                  <Link 
+                    href="/create-event"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Create Event
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <Button asChild className="w-full">
+                <Link 
+                  href="/auth/signin"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+              </Button>
+            )}
           </nav>
         </div>
       </div>

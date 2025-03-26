@@ -1,208 +1,59 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar, MapPin, User, AlertCircle, CheckCircle } from "lucide-react";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Event } from "@/lib/models";
-import { useParams } from "next/navigation";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, Calendar, MapPin, Clock, Send, Loader2 } from "lucide-react";
+import { useRouter, useParams } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
+import { format } from "date-fns";
 
-// Utility function to format date
-const formatDate = (date: Date) => {
-  if (!date) return "";
-  return new Date(date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
-
-// Type for form data
-interface FormData {
+interface EventData {
+  id: string;
   name: string;
-  email: string;
-  response: 'yes' | 'no' | 'maybe';
-  plusOne: boolean;
-  plusOneName?: string;
-  message?: string;
+  date: string;
+  location: string;
+  description?: string;
+  hostName?: string;
 }
 
-// RSVP Form Component
-const RsvpForm = ({ 
-  onSubmit, 
-  onChange, 
-  formData, 
-  isSubmitting 
-}: { 
-  onSubmit: (e: React.FormEvent) => void;
-  onChange: (data: FormData) => void;
-  formData: FormData;
-  isSubmitting: boolean;
-}) => {
-  return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Your Name</Label>
-        <Input 
-          id="name" 
-          placeholder="Enter your name" 
-          value={formData.name}
-          onChange={(e) => onChange({...formData, name: e.target.value})}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input 
-          id="email" 
-          type="email" 
-          placeholder="your.email@example.com" 
-          value={formData.email}
-          onChange={(e) => onChange({...formData, email: e.target.value})}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Will you attend?</Label>
-        <RadioGroup 
-          value={formData.response} 
-          onValueChange={(value) => onChange({...formData, response: value as 'yes' | 'no' | 'maybe'})}
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="yes" />
-            <Label htmlFor="yes">Yes, I'll be there</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="no" />
-            <Label htmlFor="no">No, I can't make it</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="maybe" id="maybe" />
-            <Label htmlFor="maybe">Maybe</Label>
-          </div>
-        </RadioGroup>
-      </div>
-      
-      <div className="flex items-start space-x-2">
-        <Checkbox 
-          id="plusOne" 
-          checked={formData.plusOne}
-          onCheckedChange={(checked) => onChange({...formData, plusOne: checked as boolean})}
-        />
-        <div className="grid gap-1.5 leading-none">
-          <Label htmlFor="plusOne">Bringing a guest?</Label>
-          <p className="text-sm text-muted-foreground">Let us know if you're bringing someone</p>
-        </div>
-      </div>
-      
-      {formData.plusOne && (
-        <div className="space-y-2">
-          <Label htmlFor="plusOneName">Guest's Name</Label>
-          <Input 
-            id="plusOneName" 
-            placeholder="Your guest's name" 
-            value={formData.plusOneName || ''}
-            onChange={(e) => onChange({...formData, plusOneName: e.target.value})}
-          />
-        </div>
-      )}
-      
-      <div className="space-y-2">
-        <Label htmlFor="message">Message (Optional)</Label>
-        <Textarea 
-          id="message" 
-          placeholder="Any message for the host..." 
-          value={formData.message || ''}
-          onChange={(e) => onChange({...formData, message: e.target.value})}
-        />
-      </div>
-      
-      <Button 
-        type="submit" 
-        className="w-full" 
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
-      </Button>
-    </form>
-  );
-};
-
-// RSVP Confirmation Component
-const RsvpConfirmation = ({ 
-  formData, 
-  event 
-}: { 
-  formData: FormData;
-  event: Event;
-}) => {
-  return (
-    <div className="space-y-4 text-center">
-      <CheckCircle className="h-12 w-12 mx-auto text-primary" />
-      <h2 className="text-xl font-semibold">Thank You!</h2>
-      <p className="text-muted-foreground">
-        {formData.response === 'yes' 
-          ? `We're looking forward to seeing you${formData.plusOne ? ' and your guest' : ''}!` 
-          : formData.response === 'no'
-            ? "We're sorry you can't make it, but thank you for letting us know."
-            : "Thank you for your response. We hope you can make it!"}
-      </p>
-      <p className="text-sm text-muted-foreground">
-        You'll receive a confirmation email shortly.
-      </p>
-    </div>
-  );
-};
-
-export default function RsvpPage() {
+export default function RSVPPage() {
   const params = useParams();
   const eventId = params.id as string;
   
-  const [event, setEvent] = useState<Event | null>(null);
+  const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Form data state
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    email: '',
-    response: 'yes',
-    plusOne: false,
-    plusOneName: '',
-    message: ''
-  });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  
+  // Form state
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [response, setResponse] = useState<"attending" | "declined" | "maybe" | "">("");
+  const [numberOfGuests, setNumberOfGuests] = useState("1");
+  const [dietaryRestrictions, setDietaryRestrictions] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    // Function to fetch event data
     const fetchEvent = async () => {
       try {
-        const response = await fetch(`/api/events/${eventId}`);
+        const res = await fetch(`/api/events/${eventId}/public`);
         
-        if (!response.ok) {
-          throw new Error('Failed to load event details');
+        if (!res.ok) {
+          throw new Error("Event not found");
         }
         
-        const data = await response.json();
-        setEvent({
-          ...data,
-          date: new Date(data.date)
-        });
+        const data = await res.json();
+        setEvent(data);
       } catch (err) {
-        console.error('Error fetching event:', err);
-        setError('Unable to load event details. Please try again later.');
+        console.error("Error fetching event:", err);
+        setError("We couldn't find the event you're looking for");
       } finally {
         setLoading(false);
       }
@@ -213,110 +64,247 @@ export default function RsvpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    
+    if (!name || !email || !response) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    setSubmitting(true);
     
     try {
-      const response = await fetch(`/api/events/${eventId}/rsvp`, {
-        method: 'POST',
+      const res = await fetch(`/api/events/${eventId}/guests`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name,
+          email,
+          response,
+          numberOfGuests: parseInt(numberOfGuests, 10),
+          dietaryRestrictions,
+          message,
+        }),
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to submit RSVP');
+      if (!res.ok) {
+        throw new Error("Failed to submit RSVP");
       }
       
-      setSubmitted(true);
+      toast.success("Your RSVP has been submitted!");
+      
+      // Clear form
+      setName("");
+      setEmail("");
+      setResponse("");
+      setNumberOfGuests("1");
+      setDietaryRestrictions("");
+      setMessage("");
+      
+      // Redirect to confirmation page
+      router.push(`/rsvp/${eventId}/thank-you`);
     } catch (err) {
-      console.error('Error submitting RSVP:', err);
-      setError('Failed to submit your RSVP. Please try again.');
+      console.error("Error submitting RSVP:", err);
+      toast.error("Failed to submit RSVP. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-center">
+          <h2 className="text-lg font-medium">Loading event details...</h2>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error || !event) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Event Not Found</CardTitle>
+            <CardDescription>
+              We couldn't find the event you're looking for.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button asChild className="w-full">
+              <Link href="/">Return to Home</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="container mx-auto py-6 flex justify-between items-center">
+    <div className="min-h-screen flex flex-col">
+      <header className="border-b">
+        <div className="container mx-auto py-6 px-4">
         <Link href="/" className="flex items-center space-x-2">
           <CheckCircle className="h-6 w-6 text-primary" />
           <span className="font-bold text-xl font-antonio">
             <b>S<i>a</i>ve the D<i>a</i>te</b>
           </span>
-        </Link>
-        
-        <div className="flex items-center space-x-4">
-          <Link 
-            href="/pricing" 
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            Pricing
           </Link>
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-4 md:py-10 md:px-6 flex flex-col items-center">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center flex-1 h-[50vh]">
-            <div className="animate-spin rounded-full h-10 w-10 md:h-12 md:w-12 border-b-2 border-primary"></div>
-            <p className="mt-3 md:mt-4 text-sm md:text-base text-muted-foreground">Loading event details...</p>
-          </div>
-        ) : error ? (
-          <Alert variant="destructive" className="max-w-md w-full mt-6 md:mt-8 text-sm md:text-base">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {error}
-            </AlertDescription>
-          </Alert>
-        ) : event && (
-          <div className="w-full max-w-lg mx-auto space-y-6 md:space-y-8">
-            {/* Event Header */}
-            <div className="text-center space-y-3 md:space-y-4">
-              {event.imageUrl && (
-                <div className="w-full h-40 md:h-64 rounded-xl overflow-hidden">
-                  <img 
-                    src={event.imageUrl}
-                    alt={event.name}
-                    className="w-full h-full object-cover"
-                  />
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">{event.name}</h1>
+            
+            {event.hostName && (
+              <p className="text-lg mb-6">Hosted by {event.hostName}</p>
+            )}
+            
+            <div className="space-y-4 mb-8">
+              <div className="flex items-start">
+                <Calendar className="h-5 w-5 mt-0.5 mr-3 text-primary" />
+                <div>
+                  <h3 className="font-medium">Date & Time</h3>
+                  <p>{format(new Date(event.date), "EEEE, MMMM d, yyyy")}</p>
                 </div>
-              )}
-              <h1 className="text-2xl md:text-3xl font-bold mt-4 md:mt-6">{event.name}</h1>
-              <div className="flex flex-col gap-1.5 md:gap-2">
-                <div className="inline-flex items-center justify-center gap-1 text-muted-foreground text-sm md:text-base">
-                  <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span>{event.date ? formatDate(event.date) : ''}</span>
                 </div>
-                <div className="inline-flex items-center justify-center gap-1 text-muted-foreground text-sm md:text-base">
-                  <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span>{event.location}</span>
-                </div>
-                <div className="inline-flex items-center justify-center gap-1 text-muted-foreground text-sm md:text-base">
-                  <User className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span>Hosted by {event.hostName}</span>
+              
+              <div className="flex items-start">
+                <MapPin className="h-5 w-5 mt-0.5 mr-3 text-primary" />
+                <div>
+                  <h3 className="font-medium">Location</h3>
+                  <p>{event.location}</p>
                 </div>
               </div>
-              {event.description && (
-                <p className="mt-2 text-sm md:text-base text-muted-foreground">{event.description}</p>
-              )}
             </div>
 
-            {submitted ? (
-              <RsvpConfirmation formData={formData} event={event} />
-            ) : (
-              <RsvpForm 
-                onSubmit={handleSubmit} 
-                onChange={setFormData} 
-                formData={formData}
-                isSubmitting={isSubmitting}
-              />
+            {event.description && (
+              <div className="mb-8">
+                <h3 className="font-medium mb-2">About this event</h3>
+                <p className="text-muted-foreground">{event.description}</p>
+              </div>
             )}
           </div>
-        )}
+          
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>RSVP to this event</CardTitle>
+                <CardDescription>
+                  Please let us know if you can attend
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Your Name *</Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Will you attend? *</Label>
+                    <RadioGroup
+                      value={response}
+                      onValueChange={(value) => setResponse(value as any)}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="attending" id="attending" />
+                        <Label htmlFor="attending" className="cursor-pointer">Yes, I'll be there</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="declined" id="declined" />
+                        <Label htmlFor="declined" className="cursor-pointer">No, I can't make it</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="maybe" id="maybe" />
+                        <Label htmlFor="maybe" className="cursor-pointer">Maybe</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  
+                  {response === "attending" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="guests">Number of Guests (including you)</Label>
+                        <Input
+                          id="guests"
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={numberOfGuests}
+                          onChange={(e) => setNumberOfGuests(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="dietary">Dietary Restrictions</Label>
+                        <Input
+                          id="dietary"
+                          value={dietaryRestrictions}
+                          onChange={(e) => setDietaryRestrictions(e.target.value)}
+                          placeholder="Vegetarian, gluten-free, etc."
+                        />
+                      </div>
+                    </>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message">Message (Optional)</Label>
+                    <Textarea
+                      id="message"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Any additional information you'd like to share"
+                    />
+                  </div>
+                  
+                  <Button type="submit" className="w-full" disabled={submitting}>
+                    {submitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send RSVP
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </main>
+      
+      <footer className="border-t py-6">
+        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+          © {new Date().getFullYear()} SaveTheDate. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 } 

@@ -2,59 +2,75 @@ import { db } from "@/lib/firebase";
 import { Event, eventConverter } from "@/lib/models";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { collection, addDoc, doc, setDoc } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc, query, where, getDocs } from "firebase/firestore";
+import { auth } from "@/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json();
-
-    // Validate the required fields
-    if (!data.name || !data.date || !data.location || !data.hostEmail) {
+    const session = await auth();
+    
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    const userId = session.user.id;
+    const body = await request.json();
+    
+    // Validate required fields
+    if (!body.name || !body.date || !body.location) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing required fields: name, date, and location are required" },
         { status: 400 }
       );
     }
-
-    // Generate a unique admin token
-    const adminToken = crypto.randomBytes(32).toString("hex");
-
-    // Create the event data object
-    const eventData: Event = {
-      name: data.name,
-      description: data.description,
-      date: new Date(data.date),
-      endDate: data.endDate ? new Date(data.endDate) : undefined,
-      location: data.location,
-      imageUrl: data.imageUrl,
-      dressCode: data.dressCode,
-      instructions: data.instructions,
-      hostName: data.hostName,
-      hostEmail: data.hostEmail,
-      adminToken,
-      createdAt: new Date(),
-      updatedAt: new Date()
+    
+    // Create new event document
+    const eventData = {
+      userId,
+      name: body.name,
+      date: body.date,
+      location: body.location,
+      description: body.description || "",
+      createdAt: new Date().toISOString(),
+      guestCount: 0
     };
-
-    // Create the event in Firestore
+    
     const eventsRef = collection(db, "events");
-    const eventRef = await addDoc(eventsRef, eventConverter.toFirestore(eventData));
-    const eventId = eventRef.id;
-
-    // In a real application, you would send an email to the host with the admin link
-    // For now, we'll just return the admin token in the response
+    const docRef = await addDoc(eventsRef, eventData);
     
     return NextResponse.json({
-      success: true,
-      eventId,
-      adminToken,
-      adminUrl: `${process.env.NEXT_PUBLIC_BASE_URL || ""}/admin/events/${eventId}?token=${adminToken}`,
-    });
+      id: docRef.id,
+      ...eventData
+    }, { status: 201 });
   } catch (error) {
     console.error("Error creating event:", error);
-    return NextResponse.json(
-      { error: "Failed to create event" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create event" }, { status: 500 });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await auth();
+    
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    const userId = session.user.id;
+    
+    // Query events from Firestore
+    const eventsRef = collection(db, "events");
+    const q = query(eventsRef, where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
+    
+    const events = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    return NextResponse.json(events);
+  } catch (error) {
+    console.error("Error getting events:", error);
+    return NextResponse.json({ error: "Failed to fetch events" }, { status: 500 });
   }
 } 

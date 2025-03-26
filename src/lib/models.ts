@@ -1,5 +1,14 @@
 // Firebase Firestore data models
 
+export interface User {
+  id?: string;
+  name?: string;
+  email: string;
+  image?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export interface Event {
   id?: string;
   name: string;
@@ -12,7 +21,8 @@ export interface Event {
   instructions?: string;
   hostName?: string;
   hostEmail: string;
-  adminToken: string;
+  adminToken?: string; // Making this optional for the transition
+  userId?: string; // New field to link events to users
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -31,6 +41,29 @@ export interface Guest {
 }
 
 // Convert Firestore timestamp to Date and handle Firestore document conversions
+export const userConverter = {
+  toFirestore: (user: User) => {
+    return {
+      name: user.name || null,
+      email: user.email,
+      image: user.image || null,
+      createdAt: user.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
+  },
+  fromFirestore: (snapshot: any, options?: any): User => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      name: data.name,
+      email: data.email,
+      image: data.image,
+      createdAt: data.createdAt?.toDate(),
+      updatedAt: data.updatedAt?.toDate(),
+    };
+  }
+};
+
 export const eventConverter = {
   toFirestore: (event: Event) => {
     return {
@@ -44,7 +77,8 @@ export const eventConverter = {
       instructions: event.instructions || null,
       hostName: event.hostName || null,
       hostEmail: event.hostEmail,
-      adminToken: event.adminToken,
+      adminToken: event.adminToken || null,
+      userId: event.userId || null, // Include the user ID
       createdAt: event.createdAt || new Date(),
       updatedAt: new Date(),
     };
@@ -64,6 +98,7 @@ export const eventConverter = {
       hostName: data.hostName,
       hostEmail: data.hostEmail,
       adminToken: data.adminToken,
+      userId: data.userId,
       createdAt: data.createdAt.toDate(),
       updatedAt: data.updatedAt.toDate(),
     };

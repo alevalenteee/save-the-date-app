@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const formSchema = z.object({
   // Step 1: Basic Event Details
@@ -43,6 +44,7 @@ export default function EventCreationForm() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const { data: session, status } = useSession();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -57,6 +59,14 @@ export default function EventCreationForm() {
       hostEmail: "",
     },
   });
+
+  // Pre-fill host information if user is logged in
+  useEffect(() => {
+    if (session?.user) {
+      form.setValue("hostName", session.user.name || "");
+      form.setValue("hostEmail", session.user.email || "");
+    }
+  }, [session, form]);
 
   const nextStep = async () => {
     const fieldsToValidate = step === 1 
@@ -79,13 +89,24 @@ export default function EventCreationForm() {
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     
+    // If user is not authenticated, redirect to sign in
+    if (status !== "authenticated") {
+      toast.error("You must be signed in to create events");
+      router.push("/auth/signin?callbackUrl=/create-event");
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
       const response = await fetch('/api/events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          userId: session?.user?.id // Include the user ID
+        }),
       });
       
       if (!response.ok) {
@@ -95,13 +116,12 @@ export default function EventCreationForm() {
       
       const result = await response.json();
       
-      toast.success("Event created successfully! Check your email for the admin link.", {
-        description: "Your admin link has been generated."
+      toast.success("Event created successfully!", {
+        description: "Your event has been created and linked to your account."
       });
       
-      // In a production app, we would send an email with the admin link
-      // For now, we'll navigate to a success page with the admin link
-      router.push(`/event-created?adminUrl=${encodeURIComponent(result.adminUrl)}`);
+      // Navigate to the dashboard instead of the event-created page
+      router.push(`/dashboard`);
       
     } catch (error: any) {
       toast.error("Failed to create event", {
