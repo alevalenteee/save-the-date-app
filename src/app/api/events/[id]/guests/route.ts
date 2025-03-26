@@ -1,6 +1,6 @@
 import { db } from "@/lib/firebase";
 import { Event, Guest, eventConverter, guestConverter } from "@/lib/models";
-import { collection, query, where, getDocs, doc, getDoc, addDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc } from "firebase/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 
@@ -156,6 +156,9 @@ export async function POST(
       );
     }
     
+    // Get the event data to update guest count
+    const eventData = eventSnapshot.data();
+    
     const body = await request.json();
     
     // Validate required fields
@@ -164,6 +167,45 @@ export async function POST(
         { error: "Missing required fields: name, email, and response are required" },
         { status: 400 }
       );
+    }
+    
+    // Validate that name contains first and last name
+    if (body.name.trim().split(/\s+/).length < 2) {
+      return NextResponse.json(
+        { error: "Full name (first and last) is required" },
+        { status: 400 }
+      );
+    }
+    
+    // Validate additional guest names if attending with guests
+    if (body.response === "attending" && body.numberOfGuests > 1) {
+      // Check if all additional guest fields are provided and contain first and last names
+      if (body.additionalGuestNames && body.additionalGuestNames.length > 0) {
+        // Check that we have the right number of additional guests
+        if (body.additionalGuestNames.length < body.numberOfGuests - 1) {
+          return NextResponse.json(
+            { error: "Names for all additional guests are required" },
+            { status: 400 }
+          );
+        }
+        
+        // Check that all additional guest names contain first and last names
+        const invalidGuests = body.additionalGuestNames.filter(
+          (name: string) => name.trim().split(/\s+/).length < 2
+        );
+        
+        if (invalidGuests.length > 0) {
+          return NextResponse.json(
+            { error: "Full name (first and last) is required for all guests" },
+            { status: 400 }
+          );
+        }
+      } else if (body.numberOfGuests > 1) {
+        return NextResponse.json(
+          { error: "Names for all additional guests are required" },
+          { status: 400 }
+        );
+      }
     }
     
     // Check for existing guest with same email
@@ -177,8 +219,62 @@ export async function POST(
     
     // If guest with same email exists, update their RSVP instead of creating a new one
     if (!existingGuests.empty) {
-      // For simplicity, we'll just create a new entry instead of updating
-      // In a real app, you would update the existing entry
+      // Get the existing guest
+      const existingGuest = existingGuests.docs[0];
+      const existingGuestData = existingGuest.data();
+      
+      // First, handle the guest count update
+      if (existingGuestData.response === "attending" && body.response !== "attending") {
+        // If changing from attending to non-attending, decrease the guest count
+        const currentGuestCount = eventData.guestCount || 0;
+        const decreaseAmount = existingGuestData.numberOfGuests || 1;
+        const newGuestCount = Math.max(0, currentGuestCount - decreaseAmount);
+        
+        await updateDoc(eventRef, {
+          guestCount: newGuestCount
+        });
+      } else if (existingGuestData.response !== "attending" && body.response === "attending") {
+        // If changing from non-attending to attending, increase the guest count
+        const currentGuestCount = eventData.guestCount || 0;
+        const newGuestCount = currentGuestCount + (body.numberOfGuests || 1);
+        
+        await updateDoc(eventRef, {
+          guestCount: newGuestCount
+        });
+      } else if (existingGuestData.response === "attending" && body.response === "attending") {
+        // If already attending but changing number of guests
+        const currentGuestCount = eventData.guestCount || 0;
+        const guestDifference = (body.numberOfGuests || 1) - (existingGuestData.numberOfGuests || 1);
+        const newGuestCount = Math.max(0, currentGuestCount + guestDifference);
+        
+        await updateDoc(eventRef, {
+          guestCount: newGuestCount
+        });
+      }
+      
+      // Update the existing guest document
+      await updateDoc(doc(guestsRef, existingGuest.id), {
+        name: body.name,
+        email: body.email,
+        response: body.response,
+        numberOfGuests: body.numberOfGuests || 1,
+        additionalGuestNames: body.additionalGuestNames || [],
+        dietaryRestrictions: body.dietaryRestrictions || "",
+        message: body.message || "",
+        updatedAt: new Date().toISOString()
+      });
+      
+      // Return the updated guest data
+      return NextResponse.json(
+        {
+          id: existingGuest.id,
+          ...body,
+          eventId,
+          createdAt: existingGuestData.createdAt,
+          updatedAt: new Date().toISOString()
+        },
+        { status: 200 }
+      );
     }
     
     // Create guest data
@@ -188,6 +284,7 @@ export async function POST(
       email: body.email,
       response: body.response,
       numberOfGuests: body.numberOfGuests || 1,
+      additionalGuestNames: body.additionalGuestNames || [],
       dietaryRestrictions: body.dietaryRestrictions || "",
       message: body.message || "",
       createdAt: new Date().toISOString()
@@ -196,8 +293,16 @@ export async function POST(
     // Add the guest to Firestore
     const docRef = await addDoc(guestsRef, guestData);
     
-    // Get the event data to update guest count
-    const eventData = eventSnapshot.data();
+    // Update the event's guest count if the RSVP is "attending"
+    if (body.response === "attending") {
+      // Update the event document with the new guest count
+      const currentGuestCount = eventData.guestCount || 0;
+      const newGuestCount = currentGuestCount + (body.numberOfGuests || 1);
+      
+      await updateDoc(eventRef, {
+        guestCount: newGuestCount
+      });
+    }
     
     // Return success response
     return NextResponse.json(

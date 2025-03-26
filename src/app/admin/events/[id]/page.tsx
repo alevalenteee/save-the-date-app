@@ -1,18 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Copy, Calendar, MapPin, User, Trash, Share, Edit, ChevronLeft, Menu, X, Clipboard, Mail, ExternalLink, MessageSquare, Loader2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { CheckCircle, Copy, Calendar, MapPin, User, Trash, Share, Edit, ChevronLeft, Menu, X, Clipboard, Mail, ExternalLink, MessageSquare, Loader2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface EventData {
   id: string;
@@ -28,8 +39,9 @@ interface GuestData {
   id: string;
   name: string;
   email: string;
-  response: "attending" | "declined" | "maybe";
+  response: "attending" | "declined";
   numberOfGuests: number;
+  additionalGuestNames?: string[];
   dietaryRestrictions?: string;
   message?: string;
   createdAt: string;
@@ -53,9 +65,25 @@ export default function EventAdminPage() {
   const [stats, setStats] = useState({
     attending: 0,
     declined: 0,
-    maybe: 0,
     totalGuests: 0
   });
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteGuestDialogOpen, setDeleteGuestDialogOpen] = useState(false);
+  const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
+  const [isDeletingGuest, setIsDeletingGuest] = useState(false);
+
+  // Add expanded cards state
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+
+  // Function to toggle card expansion
+  const toggleCardExpansion = (id: string) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -111,13 +139,19 @@ export default function EventAdminPage() {
       // Calculate stats
       const attending = data.guests.filter((g: GuestData) => g.response === "attending").length;
       const declined = data.guests.filter((g: GuestData) => g.response === "declined").length;
-      const maybe = data.guests.filter((g: GuestData) => g.response === "maybe").length;
+      
+      // Calculate total guests including additional guests
+      let totalAttending = 0;
+      data.guests.forEach((guest: GuestData) => {
+        if (guest.response === "attending") {
+          totalAttending += guest.numberOfGuests;
+        }
+      });
       
       setStats({
-        attending,
+        attending: totalAttending,
         declined,
-        maybe,
-        totalGuests: attending
+        totalGuests: totalAttending
       });
     } catch (err) {
       console.error("Error fetching guests:", err);
@@ -139,6 +173,58 @@ export default function EventAdminPage() {
     );
   };
   
+  const handleDeleteEvent = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete event');
+      }
+      
+      toast.success('Event deleted successfully');
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Failed to delete event');
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleDeleteGuest = async (guestId: string) => {
+    setSelectedGuestId(guestId);
+    setDeleteGuestDialogOpen(true);
+  };
+
+  const confirmDeleteGuest = async () => {
+    if (!selectedGuestId) return;
+    
+    setIsDeletingGuest(true);
+    try {
+      const response = await fetch(`/api/events/${eventId}/guests/${selectedGuestId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete guest');
+      }
+      
+      toast.success('Guest deleted successfully');
+      fetchGuests(); // Refresh guest list
+    } catch (error) {
+      console.error('Error deleting guest:', error);
+      toast.error('Failed to delete guest');
+    } finally {
+      setIsDeletingGuest(false);
+      setDeleteGuestDialogOpen(false);
+      setSelectedGuestId(null);
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -170,6 +256,54 @@ export default function EventAdminPage() {
   }
   
   const eventLink = `${window.location.origin}/rsvp/${eventId}`;
+
+  const renderQRCode = () => {
+    if (!event) return null;
+    
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const rsvpUrl = `${baseUrl}/rsvp/${event.id}`;
+    
+    return (
+      <div className="mt-6 flex flex-col items-center md:flex-row md:items-start gap-6">
+        <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <QRCodeSVG
+            value={rsvpUrl}
+            size={200}
+            level="H"
+            includeMargin={true}
+          />
+        </div>
+        <div className="space-y-3">
+          <h3 className="font-medium">QR Code for Event</h3>
+          <p className="text-sm text-muted-foreground">
+            Share this QR code with your guests so they can quickly access the RSVP page.
+            When scanned, it will take them directly to your event's RSVP page.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const canvas = document.querySelector('#event-qr-code canvas') as HTMLCanvasElement;
+              if (canvas) {
+                const image = canvas.toDataURL("image/png");
+                const link = document.createElement("a");
+                link.href = image;
+                link.download = `qrcode-${event.id}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                toast.success("QR code downloaded successfully");
+              } else {
+                toast.error("Failed to download QR code");
+              }
+            }}
+          >
+            Download QR Code
+          </Button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -250,12 +384,22 @@ export default function EventAdminPage() {
       <div className="flex mt-16 min-h-[calc(100vh-64px)]">
         {/* Main Content */}
         <main className="flex-1 container mx-auto px-4 py-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold">{event.name}</h1>
-            <p className="text-muted-foreground">
-              {format(new Date(event.date), "EEEE, MMMM d, yyyy")}
-            </p>
-      </div>
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold">{event.name}</h1>
+              <p className="text-muted-foreground">
+                {format(new Date(event.date), "EEEE, MMMM d, yyyy")}
+              </p>
+            </div>
+            <Button 
+              variant="destructive" 
+              onClick={() => setDeleteDialogOpen(true)}
+              className="flex items-center gap-1"
+            >
+              <Trash className="h-4 w-4" />
+              <span className="hidden sm:inline">Delete Event</span>
+            </Button>
+          </div>
 
           <Tabs defaultValue="guests">
             <TabsList className="mb-4">
@@ -319,7 +463,7 @@ export default function EventAdminPage() {
           </CardContent>
         </Card>
         
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardDescription>Total RSVPs</CardDescription>
@@ -338,20 +482,11 @@ export default function EventAdminPage() {
                   </CardHeader>
                 </Card>
                 
-        <Card>
-          <CardHeader className="pb-2">
+                <Card>
+                  <CardHeader className="pb-2">
                     <CardDescription>Declined</CardDescription>
                     <CardTitle className="text-2xl text-red-600">
                       {stats.declined}
-                    </CardTitle>
-          </CardHeader>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-                    <CardDescription>Maybe</CardDescription>
-                    <CardTitle className="text-2xl text-amber-600">
-                      {stats.maybe}
                     </CardTitle>
                   </CardHeader>
                 </Card>
@@ -379,51 +514,127 @@ export default function EventAdminPage() {
                       <p>Share your event link to start collecting RSVPs</p>
                     </div>
                   ) : (
-                    <div className="border rounded-md overflow-hidden">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-muted/50">
-                            <th className="text-left p-3 font-medium">Name</th>
-                            <th className="text-left p-3 font-medium hidden md:table-cell">Email</th>
-                            <th className="text-left p-3 font-medium">Response</th>
-                            <th className="text-left p-3 font-medium">Guests</th>
-                            <th className="text-left p-3 font-medium hidden lg:table-cell">Date Added</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {guests.map((guest) => (
-                            <tr key={guest.id} className="hover:bg-muted/50">
-                              <td className="p-3">{guest.name}</td>
-                              <td className="p-3 hidden md:table-cell">
-                                <a 
-                                  href={`mailto:${guest.email}`} 
-                                  className="text-primary hover:underline"
+                    <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-1">
+                      {guests.map((guest) => (
+                        <div 
+                          key={guest.id} 
+                          className={cn(
+                            "bg-card rounded-lg border overflow-hidden hover:shadow-md transition-all",
+                            expandedCards[guest.id] ? "ring-2 ring-primary/10" : ""
+                          )}
+                        >
+                          <div className="p-4">
+                            {/* Card Header with button - always visible */}
+                            <div className="flex justify-between items-start">
+                              <div 
+                                className="flex-1 cursor-pointer"
+                                onClick={() => toggleCardExpansion(guest.id)}
+                              >
+                                <div className="mb-2">
+                                  <h3 className="font-medium text-xl">{guest.name}</h3>
+                                  <a 
+                                    href={`mailto:${guest.email}`} 
+                                    className="text-sm text-primary hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {guest.email}
+                                  </a>
+                                </div>
+                                
+                                {/* Status badges - always visible */}
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                  <span className={cn(
+                                    "inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold",
+                                    guest.response === "attending" && "bg-green-100 text-green-800",
+                                    guest.response === "declined" && "bg-red-100 text-red-800"
+                                  )}>
+                                    {guest.response === "attending" && "Attending"}
+                                    {guest.response === "declined" && "Declined"}
+                                  </span>
+                                  
+                                  {guest.response === "attending" && (
+                                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
+                                      {guest.numberOfGuests} {guest.numberOfGuests === 1 ? 'guest' : 'guests'}
+                                    </span>
+                                  )}
+                                  
+                                  <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                                    {format(new Date(guest.createdAt), "MMM d, yyyy")}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center space-x-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-8 h-8 p-0 text-muted-foreground hover:text-foreground"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleCardExpansion(guest.id);
+                                  }}
                                 >
-                                  {guest.email}
-                                </a>
-                              </td>
-                              <td className="p-3">
-                                <span className={cn(
-                                  "inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold",
-                                  guest.response === "attending" && "bg-green-100 text-green-800",
-                                  guest.response === "declined" && "bg-red-100 text-red-800",
-                                  guest.response === "maybe" && "bg-amber-100 text-amber-800"
-                                )}>
-                                  {guest.response === "attending" && "Attending"}
-                                  {guest.response === "declined" && "Declined"}
-                                  {guest.response === "maybe" && "Maybe"}
-                                </span>
-                              </td>
-                              <td className="p-3">
-                                {guest.response === "attending" ? guest.numberOfGuests : "-"}
-                              </td>
-                              <td className="p-3 hidden lg:table-cell text-muted-foreground text-sm">
-                                {format(new Date(guest.createdAt), "MMM d, yyyy")}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                                  {expandedCards[guest.id] ? (
+                                    <ChevronLeft className="h-5 w-5 rotate-90" />
+                                  ) : (
+                                    <ChevronLeft className="h-5 w-5 -rotate-90" />
+                                  )}
+                                </Button>
+                                
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-8 h-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteGuest(guest.id);
+                                  }}
+                                >
+                                  <Trash className="h-4 w-4" />
+                                  <span className="sr-only">Delete</span>
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {/* Expandable details - only visible when expanded */}
+                            {expandedCards[guest.id] && (
+                              <div className="mt-4 pt-3 border-t space-y-4 animate-in fade-in-50 duration-200">
+                                {guest.additionalGuestNames && guest.additionalGuestNames.length > 0 && (
+                                  <div>
+                                    <h4 className="text-xs uppercase text-muted-foreground mb-2 font-semibold">Additional Guests</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                      {guest.additionalGuestNames.map((name, i) => (
+                                        <div key={i} className="flex items-center p-2 bg-muted/30 rounded-md">
+                                          <User className="h-3.5 w-3.5 mr-2 text-green-600" />
+                                          <span className="text-sm font-medium">{name}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {guest.dietaryRestrictions && (
+                                  <div>
+                                    <h4 className="text-xs uppercase text-muted-foreground mb-1 font-semibold">Dietary Restrictions</h4>
+                                    <div className="bg-muted/30 p-2 rounded-md">
+                                      <p className="text-sm">{guest.dietaryRestrictions}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {guest.message && (
+                                  <div>
+                                    <h4 className="text-xs uppercase text-muted-foreground mb-1 font-semibold">Message</h4>
+                                    <div className="bg-muted/30 p-2 rounded-md">
+                                      <p className="text-sm italic">"{guest.message}"</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </CardContent>
@@ -488,12 +699,87 @@ export default function EventAdminPage() {
                       </Link>
               </Button>
             </div>
+            
+            <div id="event-qr-code">
+              {renderQRCode()}
+            </div>
           </CardContent>
         </Card>
             </TabsContent>
           </Tabs>
         </main>
       </div>
+
+      {/* Delete Event Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Delete Event
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this event? This action cannot be undone
+              and all guest RSVPs will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.preventDefault();
+                handleDeleteEvent();
+              }}
+              disabled={isDeleting}
+              className="bg-red-500 text-white hover:bg-red-600"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Event"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Guest Dialog */}
+      <AlertDialog open={deleteGuestDialogOpen} onOpenChange={setDeleteGuestDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Delete Guest
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this guest from your event? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingGuest}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.preventDefault();
+                confirmDeleteGuest();
+              }}
+              disabled={isDeletingGuest}
+              className="bg-red-500 text-white hover:bg-red-600"
+            >
+              {isDeletingGuest ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Guest"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 

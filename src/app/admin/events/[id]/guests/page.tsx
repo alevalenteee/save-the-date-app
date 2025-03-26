@@ -15,7 +15,7 @@ interface GuestResponse {
   id: string;
   name: string;
   email: string;
-  response: 'yes' | 'no' | 'maybe';
+  response: 'yes' | 'no';
   plusOne: boolean;
   plusOneName?: string;
   message?: string;
@@ -273,8 +273,6 @@ function ResponseBadge({ response }: { response: string }) {
       return <Badge className="bg-green-500">Attending</Badge>;
     case 'no':
       return <Badge variant="secondary" className="bg-red-100 text-red-800">Not Attending</Badge>;
-    case 'maybe':
-      return <Badge variant="outline">Maybe</Badge>;
     default:
       return <Badge variant="outline">Unknown</Badge>;
   }

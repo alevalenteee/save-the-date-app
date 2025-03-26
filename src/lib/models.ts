@@ -32,7 +32,7 @@ export interface Guest {
   eventId: string;
   name: string;
   email: string;
-  response?: 'yes' | 'no' | 'maybe';
+  response?: 'yes' | 'no';
   plusOne?: boolean;
   plusOneName?: string;
   message?: string;

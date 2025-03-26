@@ -38,9 +38,9 @@
     "eventId": "evt789",
     "name": "Casey Brown",
     "email": "casey@example.com",
-    "response": "maybe",
+    "response": "no",
     "plusOne": false,
-    "message": "Will try my best to attend.",
+    "message": "I can't attend this time.",
     "createdAt": "2023-08-05T11:15:00.000Z",
     "updatedAt": "2023-08-05T11:15:00.000Z"
   },

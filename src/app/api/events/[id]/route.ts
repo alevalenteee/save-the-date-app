@@ -4,6 +4,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { collection, query, where, getDocs, or } from "firebase/firestore";
 import { auth } from "@/auth";
+import { writeBatch } from "firebase/firestore";
 
 // Check if we're running in test mode
 const isTestMode = typeof window === 'undefined' && 
@@ -93,6 +94,82 @@ export async function GET(
     console.error("Error getting event:", error);
     return NextResponse.json(
       { error: "Failed to fetch event" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const eventId = params.id;
+    
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "Event ID is required" },
+        { status: 400 }
+      );
+    }
+    
+    // Get user session
+    const session = await auth();
+    const userId = session?.user?.id;
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    
+    // Check if event exists and belongs to user
+    const eventRef = doc(db, "events", eventId);
+    const eventSnapshot = await getDoc(eventRef);
+    
+    if (!eventSnapshot.exists()) {
+      return NextResponse.json(
+        { error: "Event not found" },
+        { status: 404 }
+      );
+    }
+    
+    const eventData = eventSnapshot.data();
+    
+    // Make sure the user is authorized to delete this event
+    if (eventData.userId !== userId) {
+      return NextResponse.json(
+        { error: "Unauthorized to delete this event" },
+        { status: 403 }
+      );
+    }
+    
+    // Delete all guests associated with this event
+    const guestsRef = collection(db, "guests");
+    const q = query(guestsRef, where("eventId", "==", eventId));
+    const guestsSnapshot = await getDocs(q);
+    
+    // Delete each guest in a batch
+    const batch = writeBatch(db);
+    guestsSnapshot.docs.forEach((guestDoc) => {
+      batch.delete(guestDoc.ref);
+    });
+    
+    // Delete the event
+    batch.delete(eventRef);
+    
+    // Commit the batch
+    await batch.commit();
+    
+    return NextResponse.json(
+      { success: true, message: "Event deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    return NextResponse.json(
+      { error: "Failed to delete event" },
       { status: 500 }
     );
   }

@@ -457,7 +457,6 @@ export default function MockTestingPage() {
                           >
                             <option value="yes">Yes, I'll attend</option>
                             <option value="no">No, I can't make it</option>
-                            <option value="maybe">Maybe</option>
                           </select>
                         </div>
                         
