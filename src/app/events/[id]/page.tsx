@@ -69,7 +69,9 @@ export default function EventPage() {
   const [stats, setStats] = useState({
     attending: 0,
     declined: 0,
-    totalGuests: 0
+    totalGuests: 0,
+    responseRate: 0,
+    totalInvited: 0
   });
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -147,6 +149,7 @@ export default function EventPage() {
       // Calculate stats
       const attending = data.guests.filter((g: GuestData) => g.response === "attending").length;
       const declined = data.guests.filter((g: GuestData) => g.response === "declined").length;
+      const totalResponded = attending + declined;
       
       // Calculate total guests including additional guests
       let totalAttending = 0;
@@ -156,10 +159,18 @@ export default function EventPage() {
         }
       });
       
+      // Use event.guestCount if available, otherwise use the count of invited guests
+      const totalInvited = event?.guestCount || data.guests.length;
+      
+      // Calculate response rate
+      const responseRate = totalInvited > 0 ? Math.round((totalResponded / totalInvited) * 100) : 0;
+      
       setStats({
         attending: totalAttending,
         declined,
-        totalGuests: totalAttending
+        totalGuests: totalAttending,
+        responseRate,
+        totalInvited
       });
     } catch (err) {
       console.error("Error fetching guests:", err);
@@ -503,12 +514,26 @@ export default function EventPage() {
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
                     <p className="text-sm">Attending</p>
-                    <span className="text-sm font-medium">{stats.attending}</span>
+                    <span className="text-sm font-medium text-green-600">{stats.attending}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-sm">Declined</p>
-                    <span className="text-sm font-medium">{stats.declined}</span>
+                    <span className="text-sm font-medium text-red-600">{stats.declined}</span>
                   </div>
+                  
+                  <div className="flex justify-between items-center pt-2">
+                    <p className="text-sm">Response Rate</p>
+                    <div className="flex items-center">
+                      <div className="w-36 h-2 bg-gray-200 rounded-full mr-2 overflow-hidden">
+                        <div 
+                          className="h-full bg-primary rounded-full" 
+                          style={{ width: `${stats.responseRate}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium">{stats.responseRate}%</span>
+                    </div>
+                  </div>
+                  
                   <div className="flex justify-between items-center border-t pt-2 mt-2">
                     <p className="font-medium">Total Guests</p>
                     <span className="font-medium">{stats.totalGuests}</span>
