@@ -26,6 +26,7 @@ const formSchema = z.object({
   }),
   endDate: z.date().optional(),
   location: z.string().min(3, "Location must be at least 3 characters"),
+  venue: z.string().min(3, "Venue must be at least 3 characters"),
   description: z.string().optional(),
   
   // Step 2: Additional Details
@@ -238,13 +239,29 @@ export default function EventCreationForm() {
                           <FormItem>
                             <FormLabel>Location</FormLabel>
                             <FormControl>
-                              <Input placeholder="123 Main St, City" {...field} />
+                              <Input placeholder="City, State" {...field} />
                             </FormControl>
+                            <FormDescription>Enter the city and state of your event</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="venue"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Venue</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Venue name" {...field} />
+                          </FormControl>
+                          <FormDescription>Enter the specific venue for your event</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     
                     <FormField
                       control={form.control}

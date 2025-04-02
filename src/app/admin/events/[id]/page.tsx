@@ -33,6 +33,7 @@ interface EventData {
   description?: string;
   hostName?: string;
   guestCount: number;
+  venue?: string;
 }
 
 interface GuestData {
@@ -415,36 +416,33 @@ export default function EventAdminPage() {
                   <CardTitle>Event Details</CardTitle>
           </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-1">
-                      <Label>Event Name</Label>
-                      <div className="font-medium">{event.name}</div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <Label>Date</Label>
-                      <div className="font-medium">
-                        {format(new Date(event.date), "EEEE, MMMM d, yyyy")}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <Label>Location</Label>
-                      <div className="font-medium">{event.location}</div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <Label>Guest Count</Label>
-                      <div className="font-medium">{stats.totalGuests} confirmed attendees</div>
-                    </div>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <Card>
+                      <CardHeader className="space-y-1">
+                        <CardTitle className="text-2xl">{event.name}</CardTitle>
+                        <CardDescription>Event Details</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span>{format(new Date(event.date), 'PPP')}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span>{event.location}</span>
+                        </div>
+                        {event.venue && (
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span>{event.venue}</span>
+                          </div>
+                        )}
+                        {event.description && (
+                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                        )}
+                      </CardContent>
+                    </Card>
                   </div>
-                  
-                  {event.description && (
-                    <div className="space-y-1">
-                      <Label>Description</Label>
-                      <div className="text-muted-foreground">{event.description}</div>
-              </div>
-                  )}
                   
                   <div className="flex justify-end space-x-2 pt-4">
                     <Button asChild variant="outline">

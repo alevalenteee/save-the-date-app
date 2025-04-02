@@ -139,6 +139,7 @@ export const createEvent = async (eventData: Partial<Event>): Promise<{ id: stri
     description: eventData.description || '',
     date: eventData.date || now,
     location: eventData.location || '',
+    venue: eventData.venue || '',
     userId: eventData.userId || 'user-1',
     imageUrl: eventData.imageUrl || '',
     hostEmail: eventData.hostEmail || 'host@example.com',

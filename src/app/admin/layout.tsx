@@ -90,10 +90,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <NavItem href="/admin" icon={<Home className="h-4 w-4" />} isMobile>
               Dashboard
             </NavItem>
-            <NavItem href="/admin/guests" icon={<Users className="h-4 w-4" />} isMobile>
+            <NavItem href="/dashboard" icon={<Users className="h-4 w-4" />} isMobile>
               Guests
             </NavItem>
-            <NavItem href="/admin/invitations" icon={<BookOpen className="h-4 w-4" />} isMobile>
+            <NavItem href="/dashboard" icon={<BookOpen className="h-4 w-4" />} isMobile>
               Invitations
             </NavItem>
             <NavItem href="/admin/settings" icon={<Settings className="h-4 w-4" />} isMobile>
@@ -110,10 +110,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <NavItem href="/admin" icon={<Home className="h-4 w-4" />}>
               Dashboard
             </NavItem>
-            <NavItem href="/admin/guests" icon={<Users className="h-4 w-4" />}>
+            <NavItem href="/dashboard" icon={<Users className="h-4 w-4" />}>
               Guests
             </NavItem>
-            <NavItem href="/admin/invitations" icon={<BookOpen className="h-4 w-4" />}>
+            <NavItem href="/dashboard" icon={<BookOpen className="h-4 w-4" />}>
               Invitations
             </NavItem>
           </nav>

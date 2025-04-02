@@ -16,6 +16,7 @@ export interface Event {
   date: Date;
   endDate?: Date;
   location: string;
+  venue?: string;
   imageUrl?: string;
   dressCode?: string;
   instructions?: string;
@@ -72,6 +73,7 @@ export const eventConverter = {
       date: event.date,
       endDate: event.endDate || null,
       location: event.location,
+      venue: event.venue || null,
       imageUrl: event.imageUrl || null,
       dressCode: event.dressCode || null,
       instructions: event.instructions || null,
@@ -92,6 +94,7 @@ export const eventConverter = {
       date: data.date.toDate(),
       endDate: data.endDate ? data.endDate.toDate() : undefined,
       location: data.location,
+      venue: data.venue,
       imageUrl: data.imageUrl,
       dressCode: data.dressCode,
       instructions: data.instructions,
