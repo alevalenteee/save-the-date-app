@@ -225,7 +225,7 @@ export default function EventAdminPage() {
       setSelectedGuestId(null);
     }
   };
-
+  
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -387,10 +387,10 @@ export default function EventAdminPage() {
         <main className="flex-1 container mx-auto px-4 py-6">
           <div className="mb-6 flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">{event.name}</h1>
-              <p className="text-muted-foreground">
-                {format(new Date(event.date), "EEEE, MMMM d, yyyy")}
-              </p>
+            <h1 className="text-2xl font-bold">{event.name}</h1>
+            <p className="text-muted-foreground">
+              {format(new Date(event.date), "EEEE, MMMM d, yyyy")}
+            </p>
             </div>
             <Button 
               variant="destructive" 
@@ -400,7 +400,7 @@ export default function EventAdminPage() {
               <Trash className="h-4 w-4" />
               <span className="hidden sm:inline">Delete Event</span>
             </Button>
-          </div>
+      </div>
 
           <Tabs defaultValue="guests">
             <TabsList className="mb-4">
@@ -426,16 +426,16 @@ export default function EventAdminPage() {
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span>{format(new Date(event.date), 'PPP')}</span>
-                        </div>
+                    </div>
                         <div className="flex items-center space-x-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
                           <span>{event.location}</span>
-                        </div>
+                      </div>
                         {event.venue && (
                           <div className="flex items-center space-x-2">
                             <MapPin className="h-4 w-4 text-muted-foreground" />
                             <span>{event.venue}</span>
-                          </div>
+                    </div>
                         )}
                         {event.description && (
                           <p className="text-sm text-muted-foreground">{event.description}</p>
@@ -480,8 +480,8 @@ export default function EventAdminPage() {
                   </CardHeader>
                 </Card>
                 
-                <Card>
-                  <CardHeader className="pb-2">
+        <Card>
+          <CardHeader className="pb-2">
                     <CardDescription>Declined</CardDescription>
                     <CardTitle className="text-2xl text-red-600">
                       {stats.declined}
@@ -513,7 +513,7 @@ export default function EventAdminPage() {
                     </div>
                   ) : (
                     <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-1">
-                      {guests.map((guest) => (
+                          {guests.map((guest) => (
                         <div 
                           key={guest.id} 
                           className={cn(
@@ -530,34 +530,34 @@ export default function EventAdminPage() {
                               >
                                 <div className="mb-2">
                                   <h3 className="font-medium text-xl">{guest.name}</h3>
-                                  <a 
-                                    href={`mailto:${guest.email}`} 
+                                <a 
+                                  href={`mailto:${guest.email}`} 
                                     className="text-sm text-primary hover:underline"
                                     onClick={(e) => e.stopPropagation()}
-                                  >
-                                    {guest.email}
-                                  </a>
+                                >
+                                  {guest.email}
+                                </a>
                                 </div>
                                 
                                 {/* Status badges - always visible */}
                                 <div className="flex flex-wrap gap-2 mb-3">
-                                  <span className={cn(
-                                    "inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold",
-                                    guest.response === "attending" && "bg-green-100 text-green-800",
+                                <span className={cn(
+                                  "inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold",
+                                  guest.response === "attending" && "bg-green-100 text-green-800",
                                     guest.response === "declined" && "bg-red-100 text-red-800"
-                                  )}>
-                                    {guest.response === "attending" && "Attending"}
-                                    {guest.response === "declined" && "Declined"}
+                                )}>
+                                  {guest.response === "attending" && "Attending"}
+                                  {guest.response === "declined" && "Declined"}
                                   </span>
                                   
                                   {guest.response === "attending" && (
                                     <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
                                       {guest.numberOfGuests} {guest.numberOfGuests === 1 ? 'guest' : 'guests'}
-                                    </span>
+                                </span>
                                   )}
                                   
                                   <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
-                                    {format(new Date(guest.createdAt), "MMM d, yyyy")}
+                                {format(new Date(guest.createdAt), "MMM d, yyyy")}
                                   </span>
                                 </div>
                               </div>

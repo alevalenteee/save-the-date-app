@@ -13,7 +13,6 @@ const isTestMode = typeof window === 'undefined' &&
 interface EventData {
   id: string;
   userId?: string;
-  accessToken?: string;
   [key: string]: any;
 }
 
@@ -105,8 +104,8 @@ export async function GET(
       }
       
       // Check if user is authorized to access this event
-      if (eventData.userId !== userId && token !== eventData.accessToken) {
-        console.log(`Unauthorized: user ${userId} not owner of event (${eventData.userId}) and no valid token`);
+      if (eventData.userId !== userId) {
+        console.log(`Unauthorized: user ${userId} not owner of event (${eventData.userId})`);
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
       

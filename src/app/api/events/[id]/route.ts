@@ -1,6 +1,6 @@
 import { db } from "@/lib/firebase";
 import { Event, eventConverter } from "@/lib/models";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { collection, query, where, getDocs, or } from "firebase/firestore";
 import { auth } from "@/auth";
@@ -15,7 +15,6 @@ const isTestMode = typeof window === 'undefined' &&
 interface EventData {
   id: string;
   userId?: string;
-  accessToken?: string;
   [key: string]: any;
 }
 
@@ -24,11 +23,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const eventId = params.id;
-    
-    // Get searchParams from the URL
-    const searchParams = request.nextUrl.searchParams;
-    const token = searchParams.get('token');
+    // Fix: await params before accessing id property
+    const { id: eventId } = await params;
     
     if (!eventId) {
       return NextResponse.json(
@@ -83,8 +79,8 @@ export async function GET(
       }
       
       // Check if user is authorized to access this event
-      if (eventData.userId !== userId && token !== eventData.accessToken) {
-        console.log(`Unauthorized: user ${userId} not owner of event (${eventData.userId}) and no valid token`);
+      if (eventData.userId !== userId) {
+        console.log(`Unauthorized: user ${userId} not owner of event (${eventData.userId})`);
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
@@ -104,7 +100,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const eventId = params.id;
+    // Fix: await params before accessing id property
+    const { id: eventId } = await params;
     
     if (!eventId) {
       return NextResponse.json(
@@ -170,6 +167,98 @@ export async function DELETE(
     console.error("Error deleting event:", error);
     return NextResponse.json(
       { error: "Failed to delete event" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Fix: await params before accessing id property
+    const { id: eventId } = await params;
+    
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "Event ID is required" },
+        { status: 400 }
+      );
+    }
+    
+    // Get user session
+    const session = await auth();
+    const userId = session?.user?.id;
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    
+    // Check if event exists and belongs to user
+    const eventRef = doc(db, "events", eventId);
+    const eventSnapshot = await getDoc(eventRef);
+    
+    if (!eventSnapshot.exists()) {
+      return NextResponse.json(
+        { error: "Event not found" },
+        { status: 404 }
+      );
+    }
+    
+    const eventData = eventSnapshot.data();
+    
+    // Make sure the user is authorized to update this event
+    if (eventData.userId !== userId) {
+      return NextResponse.json(
+        { error: "Unauthorized to update this event" },
+        { status: 403 }
+      );
+    }
+    
+    // Get update data from request body
+    const body = await request.json();
+    
+    // Validate required fields
+    if (!body.name || !body.date || !body.location) {
+      return NextResponse.json(
+        { error: "Missing required fields: name, date, and location are required" },
+        { status: 400 }
+      );
+    }
+    
+    // Prepare the update data with explicit type
+    const updateData: Record<string, any> = {
+      name: body.name,
+      date: body.date,
+      time: body.time || "",
+      location: body.location,
+      description: body.description || "",
+      venue: body.venue || "",
+      imageUrl: body.imageUrl || "",
+      dressCode: body.dressCode || "",
+      instructions: body.instructions || "",
+      hostName: body.hostName || "",
+      hostEmail: body.hostEmail || "",
+      // Add additional fields as needed
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Update the event
+    await updateDoc(eventRef, updateData);
+    
+    return NextResponse.json({
+      id: eventId,
+      ...updateData,
+      userId // Include userId in response
+    });
+  } catch (error) {
+    console.error("Error updating event:", error);
+    return NextResponse.json(
+      { error: "Failed to update event" },
       { status: 500 }
     );
   }

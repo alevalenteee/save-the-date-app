@@ -7,19 +7,25 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Calendar, MapPin, Clock, Send, Loader2, Plus, X } from "lucide-react";
+import { CheckCircle, Calendar, MapPin, Clock, Send, Loader2, Plus, X, Building, User } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
 import { format } from "date-fns";
+import Image from "next/image";
 
 interface EventData {
   id: string;
   name: string;
   date: string;
+  time?: string;
   location: string;
+  venue?: string;
   description?: string;
   hostName?: string;
+  imageUrl?: string;
+  dressCode?: string;
+  instructions?: string;
 }
 
 export default function RSVPPage() {
@@ -220,6 +226,18 @@ export default function RSVPPage() {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8">
+        {event.imageUrl && (
+          <div className="w-full max-w-4xl mx-auto h-64 md:h-80 mb-6 rounded-lg overflow-hidden relative">
+            <Image 
+              src={event.imageUrl} 
+              alt={event.name} 
+              fill 
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
+        
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           <div>
             <h1 className="text-3xl font-bold mb-2">{event.name}</h1>
@@ -234,8 +252,19 @@ export default function RSVPPage() {
                 <div>
                   <h3 className="font-medium">Date & Time</h3>
                   <p>{format(new Date(event.date), "EEEE, MMMM d, yyyy")}</p>
+                  {event.time && <p>{event.time}</p>}
                 </div>
+              </div>
+              
+              {event.venue && (
+                <div className="flex items-start">
+                  <Building className="h-5 w-5 mt-0.5 mr-3 text-primary" />
+                  <div>
+                    <h3 className="font-medium">Venue</h3>
+                    <p>{event.venue}</p>
+                  </div>
                 </div>
+              )}
               
               <div className="flex items-start">
                 <MapPin className="h-5 w-5 mt-0.5 mr-3 text-primary" />
@@ -244,12 +273,29 @@ export default function RSVPPage() {
                   <p>{event.location}</p>
                 </div>
               </div>
+              
+              {event.dressCode && (
+                <div className="flex items-start">
+                  <User className="h-5 w-5 mt-0.5 mr-3 text-primary" />
+                  <div>
+                    <h3 className="font-medium">Dress Code</h3>
+                    <p>{event.dressCode}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {event.description && (
-              <div className="mb-8">
+              <div className="mb-4">
                 <h3 className="font-medium mb-2">About this event</h3>
                 <p className="text-muted-foreground">{event.description}</p>
+              </div>
+            )}
+            
+            {event.instructions && (
+              <div className="mb-8">
+                <h3 className="font-medium mb-2">Special Instructions</h3>
+                <p className="text-muted-foreground">{event.instructions}</p>
               </div>
             )}
           </div>

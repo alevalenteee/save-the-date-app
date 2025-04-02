@@ -12,6 +12,7 @@ interface EventData {
   name: string;
   date: string;
   location: string;
+  venue?: string;
 }
 
 export default function ThankYouPage() {

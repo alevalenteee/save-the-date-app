@@ -1,34 +1,65 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Menu, X, LogOut, ChevronLeft } from "lucide-react";
+import { CheckCircle, ChevronLeft, Menu, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import EventCreationForm from "@/components/EventCreationForm";
 
-export default function CreateEventPage() {
+export default function EditEventPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const params = useParams();
+  const eventId = params.id as string;
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/auth/signin?callbackUrl=/create-event");
+      router.push("/auth/signin?callbackUrl=/admin/events/" + eventId + "/edit");
+      return;
     }
-  }, [status, router]);
-  
-  const handleSignOut = () => {
-    signOut({ callbackUrl: '/' });
+
+    if (status === "authenticated") {
+      fetchEvent();
+    }
+  }, [status, eventId]);
+
+  const fetchEvent = async () => {
+    try {
+      setLoading(true);
+      const searchParams = new URLSearchParams(window.location.search);
+      const token = searchParams.get('token');
+      console.log("Fetching event with ID:", eventId);
+      console.log("Using token for fetch:", !!token);
+      
+      const response = await fetch(`/api/events/${eventId}${token ? `?token=${token}` : ''}`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch event");
+      }
+      
+      const data = await response.json();
+      console.log("Event data fetched successfully:", data.id);
+      setEvent(data);
+    } catch (error) {
+      console.error("Error fetching event:", error);
+      toast.error("Failed to load event details");
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  if (status === "loading") {
+
+  if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-center">
-          <h2 className="text-lg font-medium">Loading...</h2>
+          <h2 className="text-lg font-medium">Loading event...</h2>
         </div>
       </div>
     );
@@ -63,19 +94,10 @@ export default function CreateEventPage() {
               asChild
               className="hidden md:flex"
             >
-              <Link href="/dashboard">
+              <Link href={`/admin/events/${eventId}`}>
                 <ChevronLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+                Back to Event
               </Link>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="hidden md:flex"
-              onClick={handleSignOut}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
             </Button>
           </div>
         </div>
@@ -108,24 +130,13 @@ export default function CreateEventPage() {
           
           <nav className="space-y-4">
             <Link 
-              href="/dashboard" 
+              href={`/admin/events/${eventId}`}
               className="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               <ChevronLeft className="h-4 w-4" />
-              Back to Dashboard
+              Back to Event
             </Link>
-            <Button 
-              variant="ghost" 
-              className="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary transition-colors w-full justify-start"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                handleSignOut();
-              }}
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
           </nav>
         </div>
       </div>
@@ -134,14 +145,14 @@ export default function CreateEventPage() {
         {/* Main Content */}
         <main className="flex-1 container mx-auto px-4 py-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold mb-1">Create New Event</h1>
+            <h1 className="text-2xl font-bold mb-1">Edit Event</h1>
             <p className="text-muted-foreground">
-              Fill in the details to create your event
+              Update your event details
             </p>
           </div>
 
           <div className="max-w-2xl mx-auto">
-            <EventCreationForm isEditing={false} />
+            {event && <EventCreationForm isEditing={true} eventData={event} />}
           </div>
         </main>
       </div>

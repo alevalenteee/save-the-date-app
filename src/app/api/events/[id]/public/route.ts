@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const eventId = params.id;
+    const { id: eventId } = await params;
     
     if (!eventId) {
       return NextResponse.json(
@@ -35,9 +35,14 @@ export async function GET(
       id: eventSnapshot.id,
       name: eventData.name,
       date: eventData.date,
+      time: eventData.time || null,
       location: eventData.location,
+      venue: eventData.venue || null,
       description: eventData.description || null,
       hostName: eventData.hostName || null,
+      imageUrl: eventData.imageUrl || null,
+      dressCode: eventData.dressCode || null,
+      instructions: eventData.instructions || null,
     };
     
     return NextResponse.json(publicEventData);

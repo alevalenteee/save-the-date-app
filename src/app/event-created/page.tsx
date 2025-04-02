@@ -2,26 +2,23 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Copy, CheckCircle } from "lucide-react";
+import { Check, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 export default function EventCreatedPage() {
-  const searchParams = useSearchParams();
-  const adminUrl = searchParams.get("adminUrl") || "";
-  const [isCopied, setIsCopied] = useState(false);
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(adminUrl);
-    setIsCopied(true);
-    toast.success("Admin link copied to clipboard");
+  const router = useRouter();
+  
+  // Automatically redirect to dashboard after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.push("/dashboard");
+    }, 3000);
     
-    setTimeout(() => {
-      setIsCopied(false);
-    }, 2000);
-  };
+    return () => clearTimeout(timer);
+  }, [router]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -33,15 +30,6 @@ export default function EventCreatedPage() {
             <b>S<i>a</i>ve the D<i>a</i>te</b>
           </span>
         </Link>
-        
-        <div className="flex items-center space-x-4">
-          <Link 
-            href="/pricing" 
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            Pricing
-          </Link>
-        </div>
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
@@ -53,34 +41,20 @@ export default function EventCreatedPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="rounded-lg bg-muted p-6">
-              <h3 className="font-medium mb-2">Your Admin Link</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Save this link to manage your event. For security, this link will only be shown once.
-              </p>
-              <div className="flex items-center gap-2">
-                <div className="bg-background border rounded-md p-3 text-sm flex-1 overflow-x-auto">
-                  {adminUrl}
-                </div>
-                <Button 
-                  size="icon" 
-                  variant="outline" 
-                  onClick={copyToClipboard}
-                  className="flex-shrink-0"
-                >
-                  {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
+            <div className="flex justify-center">
+              <div className="rounded-full bg-primary/10 text-primary p-4">
+                <Check className="h-12 w-12" />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-medium">Next Steps</h3>
+              <h3 className="font-medium text-center">Next Steps</h3>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
                   <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5">
                     1
                   </div>
-                  <p>Use your admin link to access your event dashboard</p>
+                  <p>Manage your event from your dashboard</p>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -102,16 +76,15 @@ export default function EventCreatedPage() {
                 </li>
               </ul>
             </div>
+            
+            <p className="text-center text-sm text-muted-foreground">
+              Redirecting to your dashboard in a few seconds...
+            </p>
           </CardContent>
-          <CardFooter className="flex justify-center gap-4">
-            <Button asChild variant="outline">
-              <Link href="/">Return to Home</Link>
+          <CardFooter className="flex justify-center">
+            <Button asChild>
+              <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
-            {adminUrl && (
-              <Button asChild>
-                <Link href={adminUrl}>Go to Admin Dashboard</Link>
-              </Button>
-            )}
           </CardFooter>
         </Card>
       </main>

@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { CheckCircle, PlusCircle, Calendar, User, MessageSquare, ExternalLink, Trash, Edit, Menu, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { CheckCircle, PlusCircle, Calendar, User, MessageSquare, ExternalLink, Trash, Edit, Menu, X, LogOut } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -60,6 +60,10 @@ export default function Dashboard() {
     }
   };
 
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/' });
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -104,6 +108,15 @@ export default function Dashboard() {
                 New Event
               </Link>
             </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="hidden md:flex"
+              onClick={handleSignOut}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
         </div>
       </header>
@@ -142,14 +155,17 @@ export default function Dashboard() {
               <PlusCircle className="h-4 w-4" />
               Create New Event
             </Link>
-            <Link 
-              href="/auth/signout" 
-              className="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary transition-colors w-full justify-start"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleSignOut();
+              }}
             >
-              <X className="h-4 w-4" />
+              <LogOut className="h-4 w-4" />
               Sign Out
-            </Link>
+            </Button>
           </nav>
         </div>
       </div>
@@ -245,7 +261,7 @@ export default function Dashboard() {
                   
                   <CardFooter className="flex justify-between pt-2">
                     <Button asChild variant="outline" size="sm">
-                      <Link href={`/admin/events/${event.id}`}>
+                      <Link href={`/events/${event.id}`}>
                         <Edit className="h-3.5 w-3.5 mr-1" />
                         Manage
                       </Link>
