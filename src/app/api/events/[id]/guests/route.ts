@@ -45,7 +45,10 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log(`Getting guests for event ${params.id}`);
+    // Extract the event ID from params at the beginning
+    const eventId = params.id;
+    
+    console.log(`Getting guests for event ${eventId}`);
     // Get user session
     const session = await auth();
     const userId = session?.user?.id;
@@ -56,7 +59,7 @@ export async function GET(
     const token = searchParams.get('token');
     console.log(`Token provided: ${token ? 'yes' : 'no'}`);
     
-    if (!params.id) {
+    if (!eventId) {
       return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
     }
     
@@ -67,17 +70,17 @@ export async function GET(
       console.log("Using mock data");
       // Dynamically import mockdb for server-side mock data
       const { getEventById, getGuests: getMockGuests } = await import("@/lib/mockdb");
-      const mockEvent = await getEventById(params.id);
+      const mockEvent = await getEventById(eventId);
       if (!mockEvent) {
         return NextResponse.json({ error: 'Event not found' }, { status: 404 });
       }
       eventData = mockEvent as EventData;
-      guestsData = await getMockGuests(params.id);
+      guestsData = await getMockGuests(eventId);
     } else {
       console.log("Using Firestore data");
       // First try getting the event directly by document ID
       try {
-        const eventRef = doc(db, "events", params.id);
+        const eventRef = doc(db, "events", eventId);
         const eventSnapshot = await getDoc(eventRef);
         
         if (eventSnapshot.exists()) {
@@ -87,7 +90,7 @@ export async function GET(
           // If not found by document ID, try the query with "id" field
           console.log("Event not found by document ID, trying query with id field");
           const eventsRef = collection(db, "events");
-          const q = query(eventsRef, where("id", "==", params.id));
+          const q = query(eventsRef, where("id", "==", eventId));
           const eventsSnapshot = await getDocs(q);
           
           if (eventsSnapshot.empty) {
@@ -112,7 +115,7 @@ export async function GET(
       // Get guests from Firestore
       console.log("Fetching guests...");
       const guestsRef = collection(db, "guests");
-      const guestsQuery = query(guestsRef, where("eventId", "==", params.id));
+      const guestsQuery = query(guestsRef, where("eventId", "==", eventId));
       const guestsSnapshot = await getDocs(guestsQuery);
       
       guestsData = guestsSnapshot.docs.map(doc => ({

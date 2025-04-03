@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { CheckCircle, Copy, Calendar, MapPin, User, Trash, Edit, ChevronLeft, Menu, X, LogOut, MessageSquare, Building, FileText, File } from "lucide-react";
+import { CheckCircle, Copy, Calendar, MapPin, User, Trash, Edit, ChevronLeft, Menu, X, LogOut, MessageSquare, Building, FileText, File, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
@@ -599,68 +599,165 @@ export default function EventPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {guests.map((guest) => (
-                      <Card key={guest.id} className="overflow-hidden">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-base flex items-center gap-2">
-                                {guest.name}
-                                <span className={cn(
-                                  "text-xs px-2 py-0.5 rounded-full",
-                                  guest.response === "attending" 
-                                    ? "bg-green-100 text-green-800" 
-                                    : "bg-red-100 text-red-800"
-                                )}>
-                                  {guest.response === "attending" ? "Attending" : "Declined"}
-                                </span>
-                              </CardTitle>
-                              <CardDescription>{guest.email}</CardDescription>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => handleDeleteGuest(guest.id)}
-                            >
-                              <Trash className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="text-sm pb-2">
-                          <div className="grid grid-cols-1 gap-1">
-                            {guest.response === "attending" && (
-                              <div className="flex items-start gap-2">
-                                <User className="h-4 w-4 text-muted-foreground mt-0.5" />
-                                <span>
-                                  {guest.numberOfGuests > 1 
-                                    ? `${guest.numberOfGuests} guests total` 
-                                    : "1 guest"}
-                                </span>
+                    {guests.map((guest) => {
+                      const isExpanded = expandedCards[guest.id] || false;
+                      const isAttending = guest.response === "attending";
+                      return (
+                        <Card 
+                          key={guest.id} 
+                          className={cn(
+                            "overflow-hidden transition-all duration-300",
+                            isExpanded ? "shadow-md" : "shadow-sm",
+                            isAttending ? "border-l-4 border-l-green-500" : "border-l-4 border-l-red-400",
+                          )}
+                        >
+                          <div 
+                            className="cursor-pointer"
+                            onClick={() => toggleCardExpansion(guest.id)}
+                          >
+                            <CardHeader className="pb-2 pt-4">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                  <div className={cn(
+                                    "w-2 h-2 rounded-full",
+                                    isAttending ? "bg-green-500" : "bg-red-400"
+                                  )}/>
+                                  <div>
+                                    <CardTitle className="text-lg font-semibold">
+                                      {guest.name}
+                                    </CardTitle>
+                                    <CardDescription>{guest.email}</CardDescription>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className={cn(
+                                    "text-xs px-3 py-1 rounded-full font-medium",
+                                    isAttending ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                                  )}>
+                                    {isAttending ? "Attending" : "Declined"}
+                                  </span>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 rounded-full hover:bg-red-50"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteGuest(guest.id);
+                                    }}
+                                  >
+                                    <Trash className="h-3.5 w-3.5 text-red-500" />
+                                  </Button>
+                                  {isExpanded ? 
+                                    <ChevronUp className="h-4 w-4 text-muted-foreground" /> : 
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                  }
+                                </div>
                               </div>
+                            </CardHeader>
+                            
+                            {!isExpanded && (
+                              <CardContent className="pb-4 pt-0">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    {isAttending && (
+                                      <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
+                                        <User className="h-3.5 w-3.5 text-slate-500" />
+                                        <span className="text-sm text-slate-700 font-medium">
+                                          {guest.numberOfGuests > 1 
+                                            ? `${guest.numberOfGuests} guests` 
+                                            : "1 guest"}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {guest.dietaryRestrictions && (
+                                      <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
+                                        <Calendar className="h-3.5 w-3.5 text-slate-500" />
+                                        <span className="text-sm text-slate-700 font-medium">
+                                          Dietary needs
+                                        </span>
+                                      </div>
+                                    )}
+                                    {guest.message && (
+                                      <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
+                                        <MessageSquare className="h-3.5 w-3.5 text-slate-500" />
+                                        <span className="text-sm text-slate-700 font-medium">
+                                          Message
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground bg-slate-50 px-2 py-1 rounded-md">
+                                    {format(new Date(guest.createdAt), "MMM d, yyyy")}
+                                  </div>
+                                </div>
+                              </CardContent>
                             )}
                             
-                            {guest.message && (
-                              <div className="flex items-start gap-2">
-                                <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
-                                <span>{guest.message}</span>
-                              </div>
-                            )}
-                            
-                            {guest.dietaryRestrictions && (
-                              <div className="flex items-start gap-2">
-                                <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
-                                <span>Dietary needs: {guest.dietaryRestrictions}</span>
-                              </div>
+                            {isExpanded && (
+                              <>
+                                <div className="px-6 pt-1 pb-2">
+                                  <div className="w-full h-px bg-slate-100" />
+                                </div>
+                                <CardContent className="pb-3 pt-0 space-y-5">
+                                  {isAttending && (
+                                    <div className="bg-slate-50 rounded-lg p-4">
+                                      <div className="flex items-center gap-2 mb-3">
+                                        <User className="h-4 w-4 text-slate-500" />
+                                        <h3 className="font-medium text-slate-900">Guest Details</h3>
+                                      </div>
+                                      <p className="text-slate-700 mb-2">
+                                        {guest.numberOfGuests > 1 
+                                          ? `${guest.numberOfGuests} guests attending` 
+                                          : "1 guest attending"}
+                                      </p>
+                                      {guest.additionalGuestNames && guest.additionalGuestNames.length > 0 && (
+                                        <div className="mt-2 border-t border-slate-200 pt-2">
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                                            {guest.additionalGuestNames.map((name, index) => (
+                                              <div key={index} className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                                <p className="text-slate-800 font-medium">
+                                                  {name}
+                                                </p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {guest.dietaryRestrictions && (
+                                    <div className="bg-slate-50 rounded-lg p-4">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <Calendar className="h-4 w-4 text-slate-500" />
+                                        <h3 className="font-medium text-slate-900">Dietary Restrictions</h3>
+                                      </div>
+                                      <p className="text-slate-700">{guest.dietaryRestrictions}</p>
+                                    </div>
+                                  )}
+                                  
+                                  {guest.message && (
+                                    <div className="bg-slate-50 rounded-lg p-4">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <MessageSquare className="h-4 w-4 text-slate-500" />
+                                        <h3 className="font-medium text-slate-900">Message</h3>
+                                      </div>
+                                      <p className="text-slate-700">{guest.message}</p>
+                                    </div>
+                                  )}
+                                </CardContent>
+                                <CardFooter className="pt-0 pb-4 px-6">
+                                  <p className="text-xs text-muted-foreground">
+                                    Responded on {format(new Date(guest.createdAt), "MMMM d, yyyy")}
+                                  </p>
+                                </CardFooter>
+                              </>
                             )}
                           </div>
-                        </CardContent>
-                        <CardFooter className="pt-0 pb-3">
-                          <p className="text-xs text-muted-foreground">
-                            Responded on {format(new Date(guest.createdAt), "MMM d, yyyy")}
-                          </p>
-                        </CardFooter>
-                      </Card>
-                    ))}
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
